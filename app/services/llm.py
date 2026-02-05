@@ -40,6 +40,31 @@ class LLMRegistry:
 
     # Class-level variable containing all available LLM models
     LLMS: List[Dict[str, Any]] = [
+        # SiliconFlow models (if configured)
+        *([{
+            "name": "siliconflow-deepseek-v3.2",
+            "llm": ChatOpenAI(
+                model=settings.SILICONFLOW_MODEL,
+                api_key=settings.SILICONFLOW_API_KEY,
+                base_url=settings.SILICONFLOW_BASE_URL,
+                temperature=settings.DEFAULT_LLM_TEMPERATURE,
+                max_tokens=settings.MAX_TOKENS,
+                tiktoken_model_name="gpt-4",  # Use gpt-4 for token counting
+            ),
+        }] if settings.SILICONFLOW_API_KEY else []),
+        # DeepSeek models (if configured)
+        *([{
+            "name": "deepseek-chat",
+            "llm": ChatOpenAI(
+                model="deepseek-chat",
+                api_key=settings.DEEPSEEK_API_KEY,
+                base_url=settings.DEEPSEEK_BASE_URL,
+                temperature=settings.DEFAULT_LLM_TEMPERATURE,
+                max_tokens=settings.MAX_TOKENS,
+                tiktoken_model_name="gpt-4",  # Use gpt-4 for token counting
+            ),
+        }] if settings.DEEPSEEK_API_KEY else []),
+        # OpenAI models
         {
             "name": "gpt-5-mini",
             "llm": ChatOpenAI(
@@ -121,7 +146,25 @@ class LLMRegistry:
         # If user provides kwargs, create a new instance with those args
         if kwargs:
             logger.debug("creating_llm_with_custom_args", model_name=model_name, custom_args=list(kwargs.keys()))
-            return ChatOpenAI(model=model_name, api_key=settings.OPENAI_API_KEY, **kwargs)
+            
+            # Determine provider based on model name
+            if model_name.startswith("siliconflow-"):
+                actual_model = model_entry["llm"].model_name if model_entry else settings.SILICONFLOW_MODEL
+                return ChatOpenAI(
+                    model=actual_model,
+                    api_key=settings.SILICONFLOW_API_KEY,
+                    base_url=settings.SILICONFLOW_BASE_URL,
+                    **kwargs
+                )
+            elif model_name.startswith("deepseek-"):
+                return ChatOpenAI(
+                    model=model_name,
+                    api_key=settings.DEEPSEEK_API_KEY,
+                    base_url=settings.DEEPSEEK_BASE_URL,
+                    **kwargs
+                )
+            else:
+                return ChatOpenAI(model=model_name, api_key=settings.OPENAI_API_KEY, **kwargs)
 
         # Return the default instance
         logger.debug("using_default_llm_instance", model_name=model_name)

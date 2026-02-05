@@ -146,6 +146,10 @@ class LangGraphAgent:
         Returns:
             str: The relevant memory.
         """
+        # Skip memory if not using OpenAI (embeddings not configured)
+        if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY.startswith("sk-hupwt"):
+            return ""
+        
         try:
             memory = await self._long_term_memory()
             results = await memory.search(user_id=str(user_id), query=query)
@@ -163,6 +167,10 @@ class LangGraphAgent:
             messages (list[dict]): The messages to update the long term memory with.
             metadata (dict): Optional metadata to include.
         """
+        # Skip memory if not using OpenAI (embeddings not configured)
+        if not settings.OPENAI_API_KEY or settings.OPENAI_API_KEY.startswith("sk-hupwt"):
+            return
+        
         try:
             memory = await self._long_term_memory()
             await memory.add(messages, user_id=str(user_id), metadata=metadata)
