@@ -1,6 +1,10 @@
 {
     "editor.formatOnSave": true,
-    "python.defaultInterpreterPath": "${workspaceFolder}/venv/bin/python",
+    "python.defaultInterpreterPath": "${workspaceFolder}/.venv/bin/python",
+    // 禁用终端自动激活虚拟环境（WSL 兼容）
+    "python.terminal.activateEnvironment": false,
+    // 指定 Python 运行使用的终端类型（避免路径混乱）
+    "terminal.integrated.defaultProfile.windows": "kali-linux (WSL)",
     "isort.args": [
         "--settings-path=${workspaceFolder}/pyproject.toml"
     ],
